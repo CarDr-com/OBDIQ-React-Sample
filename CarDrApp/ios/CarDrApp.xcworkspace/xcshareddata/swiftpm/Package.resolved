@@ -1,0 +1,33 @@
+{
+  "originHash" : "e8aecf0333b3f38e21f49f8640855db5ea5a1d349814895713ad9647bd4b2608",
+  "pins" : [
+    {
+      "identity" : "obdiqiossdk",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/CarDr-com/OBDIQIosSdk",
+      "state" : {
+        "revision" : "f1d14513861f1bbda15f6bd9475f4c9e00008cdb",
+        "version" : "2.0.3"
+      }
+    },
+    {
+      "identity" : "repairclub-ios-sdk",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/repairclub/repairclub-ios-sdk.git",
+      "state" : {
+        "revision" : "a70d7ee3b14f2da6f409a091b51b12972aea5199",
+        "version" : "1.5.6"
+      }
+    },
+    {
+      "identity" : "swiftyjson",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/SwiftyJSON/SwiftyJSON.git",
+      "state" : {
+        "revision" : "af76cf3ef710b6ca5f8c05f3a31307d44a3c5828",
+        "version" : "5.0.2"
+      }
+    }
+  ],
+  "version" : 3
+}
