@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 60;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -16,6 +16,8 @@
 		E2E3BBB32F5711DB0070D7E1 /* Dummy.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2E3BBB22F5711D90070D7E1 /* Dummy.swift */; };
 		E2E3BBB52F5712640070D7E1 /* CarDrModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2E3BBB42F5712620070D7E1 /* CarDrModule.swift */; };
 		E2E3BBBA2F5715840070D7E1 /* CarDrModule.m in Sources */ = {isa = PBXBuildFile; fileRef = E2E3BBB92F5715840070D7E1 /* CarDrModule.m */; };
+		E2E3BBD12F5B2E6D0070D7E1 /* OBDIQIosSdk in Frameworks */ = {isa = PBXBuildFile; productRef = E2E3BBD02F5B2E6D0070D7E1 /* OBDIQIosSdk */; };
+		E2E3BBD32F5B33130070D7E1 /* CarDrModuleBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = E2E3BBD22F5B33130070D7E1 /* CarDrModuleBridge.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -32,6 +34,7 @@
 		E2E3BBB42F5712620070D7E1 /* CarDrModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarDrModule.swift; sourceTree = "<group>"; };
 		E2E3BBB82F5715840070D7E1 /* CarDrApp-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CarDrApp-Bridging-Header.h"; sourceTree = "<group>"; };
 		E2E3BBB92F5715840070D7E1 /* CarDrModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CarDrModule.m; sourceTree = "<group>"; };
+		E2E3BBD22F5B33130070D7E1 /* CarDrModuleBridge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CarDrModuleBridge.m; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -41,6 +44,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				0C80B921A6F3F58F76C31292 /* libPods-CarDrApp.a in Frameworks */,
+				E2E3BBD12F5B2E6D0070D7E1 /* OBDIQIosSdk in Frameworks */,
 				E2E3BBB12F5711B80070D7E1 /* OBDIQIosSdk in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -59,6 +63,7 @@
 				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
 				13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */,
 				E2E3BBB92F5715840070D7E1 /* CarDrModule.m */,
+				E2E3BBD22F5B33130070D7E1 /* CarDrModuleBridge.m */,
 				E2E3BBB82F5715840070D7E1 /* CarDrApp-Bridging-Header.h */,
 			);
 			name = CarDrApp;
@@ -158,7 +163,7 @@
 			);
 			mainGroup = 83CBB9F61A601CBA00E9B192;
 			packageReferences = (
-				E2E3BBAF2F5711B80070D7E1 /* XCRemoteSwiftPackageReference "OBDIQIosSdk" */,
+				E2E3BBCF2F5B2E6D0070D7E1 /* XCLocalSwiftPackageReference "../../../prospectlatest/OBDIQIosSdk" */,
 			);
 			productRefGroup = 83CBBA001A601CBA00E9B192 /* Products */;
 			projectDirPath = "";
@@ -270,6 +275,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E2E3BBD32F5B33130070D7E1 /* CarDrModuleBridge.m in Sources */,
 				E2E3BBB32F5711DB0070D7E1 /* Dummy.swift in Sources */,
 				761780ED2CA45674006654EE /* AppDelegate.swift in Sources */,
 				E2E3BBBA2F5715840070D7E1 /* CarDrModule.m in Sources */,
@@ -507,6 +513,13 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCLocalSwiftPackageReference section */
+		E2E3BBCF2F5B2E6D0070D7E1 /* XCLocalSwiftPackageReference "../../../prospectlatest/OBDIQIosSdk" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../../../prospectlatest/OBDIQIosSdk;
+		};
+/* End XCLocalSwiftPackageReference section */
+
 /* Begin XCRemoteSwiftPackageReference section */
 		E2E3BBAF2F5711B80070D7E1 /* XCRemoteSwiftPackageReference "OBDIQIosSdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
@@ -522,6 +535,10 @@
 		E2E3BBB02F5711B80070D7E1 /* OBDIQIosSdk */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = E2E3BBAF2F5711B80070D7E1 /* XCRemoteSwiftPackageReference "OBDIQIosSdk" */;
+			productName = OBDIQIosSdk;
+		};
+		E2E3BBD02F5B2E6D0070D7E1 /* OBDIQIosSdk */ = {
+			isa = XCSwiftPackageProductDependency;
 			productName = OBDIQIosSdk;
 		};
 /* End XCSwiftPackageProductDependency section */

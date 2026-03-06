@@ -9,12 +9,13 @@ class CarDrModule: RCTEventEmitter {
 
     private var connectionManager: CarDrConnectionApi?
     private var vin: String = ""
+    private var hasListeners = false
 
     override init() {
         super.init()
     }
 
-    // React Native requirement
+    // MARK: React Native Requirement
     override static func requiresMainQueueSetup() -> Bool {
         return true
     }
@@ -30,13 +31,32 @@ class CarDrModule: RCTEventEmitter {
         ]
     }
 
-    // Required for EventEmitter
-  @objc override func addListener(_ eventName: String) {}
-  @objc override func removeListeners(_ count: Double) {}
+    // MARK: Listener lifecycle (recommended for RCTEventEmitter)
+
+    override func startObserving() {
+        hasListeners = true
+    }
+
+    override func stopObserving() {
+        hasListeners = false
+    }
+
+    // MARK: Safe Event Emitter
+
+    private func emit(_ name: String, _ body: Any) {
+
+        guard hasListeners else { return }
+
+        DispatchQueue.main.async {
+            self.sendEvent(withName: name, body: body)
+        }
+    }
 
     // MARK: SDK Initialization
+
     @objc
     func initializeSDK(_ partnerID: String) {
+
         connectionManager = CarDrConnectionApi()
 
         connectionManager?.initialize(
@@ -46,31 +66,37 @@ class CarDrModule: RCTEventEmitter {
         )
     }
 
-    // MARK: Start Scan
+    // MARK: Scan Device
+
     @objc
     func scanForDevice() {
         connectionManager?.scanForDevice()
     }
-  
-  @objc
-  func startScan() {
-      connectionManager?.startScan()
-  }
+
+    // MARK: Start Scan
+
+    @objc
+    func startScan() {
+        connectionManager?.startScan()
+    }
 
     // MARK: Stop Scan
+
     @objc
     func stopScan() {
         connectionManager?.stopAdvanceScan()
     }
 }
 
-// MARK: - SDK Listener
+// MARK: SDK Listener
+
 extension CarDrModule: ConnectionListener {
 
     func didFetchVehicleInfo(vehicleEntry: VehicleEntries) {
+
         vin = vehicleEntry.VIN
 
-        sendEvent(withName: "onVINReceived", body: [
+        emit("onVINReceived", [
             "vin": vin
         ])
     }
@@ -79,14 +105,14 @@ extension CarDrModule: ConnectionListener {
 
         let deviceNames = foundedDevices?.map { $0.name } ?? []
 
-        sendEvent(withName: "onDevicesFound", body: [
+        emit("onDevicesFound", [
             "devices": deviceNames
         ])
     }
 
     func didUpdateProgress(progressStatus: String, percent: String) {
-
-        sendEvent(withName: "onScanProgress", body: [
+        print(percent)
+        emit("onScanProgress", [
             "status": progressStatus,
             "percent": percent
         ])
@@ -96,9 +122,20 @@ extension CarDrModule: ConnectionListener {
 
         guard let model = model else { return }
 
-        let codes = model.map { $0.dtcCodeArray }
+        var codes: [[String: Any]] = []
 
-        sendEvent(withName: "onDTCReceived", body: [
+        for module in model {
+
+            for item in module.dtcCodeArray {
+
+                codes.append([
+                    "moduleName": module.moduleName,
+                    "code": item.dtcErrorCode
+                ])
+            }
+        }
+
+        emit("onDTCReceived", [
             "codes": codes
         ])
 
@@ -110,15 +147,22 @@ extension CarDrModule: ConnectionListener {
 
     func didReceivedRepairCost(jsonString: String) {
 
-        sendEvent(withName: "onRepairCostReceived", body: [
+        emit("onRepairCostReceived", [
             "result": jsonString
         ])
     }
 
+    // MARK: Optional callbacks
+
     func didCheckScanStatus(status: String) {}
+
     func didFetchMil(mil: Bool) {}
+
     func isReadyForScan(status: Bool, isGeneric: Bool) {}
+
     func didScanForDevice(startScan: Bool) {}
+
     func didReadyForRepairInfo(isReady: Bool) {}
+
     func didReceiveRepairCost(result: [String : Any]?) {}
 }
