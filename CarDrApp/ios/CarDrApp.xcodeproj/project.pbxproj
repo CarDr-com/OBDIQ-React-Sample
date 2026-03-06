@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 60;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -18,6 +18,7 @@
 		E2E3BBBA2F5715840070D7E1 /* CarDrModule.m in Sources */ = {isa = PBXBuildFile; fileRef = E2E3BBB92F5715840070D7E1 /* CarDrModule.m */; };
 		E2E3BBD12F5B2E6D0070D7E1 /* OBDIQIosSdk in Frameworks */ = {isa = PBXBuildFile; productRef = E2E3BBD02F5B2E6D0070D7E1 /* OBDIQIosSdk */; };
 		E2E3BBD32F5B33130070D7E1 /* CarDrModuleBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = E2E3BBD22F5B33130070D7E1 /* CarDrModuleBridge.m */; };
+		E2E3BBD62F5B3A780070D7E1 /* OBDIQIosSdk in Frameworks */ = {isa = PBXBuildFile; productRef = E2E3BBD52F5B3A780070D7E1 /* OBDIQIosSdk */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -46,6 +47,7 @@
 				0C80B921A6F3F58F76C31292 /* libPods-CarDrApp.a in Frameworks */,
 				E2E3BBD12F5B2E6D0070D7E1 /* OBDIQIosSdk in Frameworks */,
 				E2E3BBB12F5711B80070D7E1 /* OBDIQIosSdk in Frameworks */,
+				E2E3BBD62F5B3A780070D7E1 /* OBDIQIosSdk in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -163,7 +165,7 @@
 			);
 			mainGroup = 83CBB9F61A601CBA00E9B192;
 			packageReferences = (
-				E2E3BBCF2F5B2E6D0070D7E1 /* XCLocalSwiftPackageReference "../../../prospectlatest/OBDIQIosSdk" */,
+				E2E3BBD42F5B3A770070D7E1 /* XCRemoteSwiftPackageReference "OBDIQIosSdk" */,
 			);
 			productRefGroup = 83CBBA001A601CBA00E9B192 /* Products */;
 			projectDirPath = "";
@@ -513,15 +515,16 @@
 		};
 /* End XCConfigurationList section */
 
-/* Begin XCLocalSwiftPackageReference section */
-		E2E3BBCF2F5B2E6D0070D7E1 /* XCLocalSwiftPackageReference "../../../prospectlatest/OBDIQIosSdk" */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = ../../../prospectlatest/OBDIQIosSdk;
-		};
-/* End XCLocalSwiftPackageReference section */
-
 /* Begin XCRemoteSwiftPackageReference section */
 		E2E3BBAF2F5711B80070D7E1 /* XCRemoteSwiftPackageReference "OBDIQIosSdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/CarDr-com/OBDIQIosSdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.3;
+			};
+		};
+		E2E3BBD42F5B3A770070D7E1 /* XCRemoteSwiftPackageReference "OBDIQIosSdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/CarDr-com/OBDIQIosSdk";
 			requirement = {
@@ -539,6 +542,11 @@
 		};
 		E2E3BBD02F5B2E6D0070D7E1 /* OBDIQIosSdk */ = {
 			isa = XCSwiftPackageProductDependency;
+			productName = OBDIQIosSdk;
+		};
+		E2E3BBD52F5B3A780070D7E1 /* OBDIQIosSdk */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E2E3BBD42F5B3A770070D7E1 /* XCRemoteSwiftPackageReference "OBDIQIosSdk" */;
 			productName = OBDIQIosSdk;
 		};
 /* End XCSwiftPackageProductDependency section */
