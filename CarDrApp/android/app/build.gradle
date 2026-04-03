@@ -75,20 +75,21 @@ def jscFlavor = 'org.webkit:android-jsc:+'
 android {
     ndkVersion rootProject.ext.ndkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
-    compileSdkVersion rootProject.ext.compileSdkVersion
+    compileSdk rootProject.ext.compileSdkVersion
 
 
     namespace "com.cardrapp"
     defaultConfig {
         applicationId "com.cardrapp"
-        minSdkVersion rootProject.ext.minSdkVersion
-        targetSdkVersion rootProject.ext.targetSdkVersion
+        minSdk rootProject.ext.minSdkVersion
+        targetSdk rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
     }
 
     kotlinOptions {
         jvmTarget = "17"
+        freeCompilerArgs += ["-Xskip-metadata-version-check"]
     }
     signingConfigs {
         debug {
@@ -108,6 +109,12 @@ android {
             signingConfig signingConfigs.debug
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+        }
+    }
+
+    packaging {
+        resources {
+            excludes += ["META-INF/versions/9/OSGI-INF/MANIFEST.MF"]
         }
     }
 }
