@@ -64,6 +64,7 @@ class CarDrModule: RCTEventEmitter {
             isProductionReady: false,
             listener: self
         )
+      connectionManager?.setSampleVehicle(.chevroletSilverado2021)
     }
 
     // MARK: Scan Device

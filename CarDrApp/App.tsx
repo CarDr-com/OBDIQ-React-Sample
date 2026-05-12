@@ -72,7 +72,7 @@ function App(): React.JSX.Element {
   }, []);
 
   const initializeSDK = () => {
-    CarDrModule?.initializeSDK("");
+    CarDrModule?.initializeSDK("CARDR-58748");
   };
 
   const scanDevice = () => {

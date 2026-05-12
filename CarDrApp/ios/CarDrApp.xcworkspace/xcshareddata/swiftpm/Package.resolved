@@ -1,13 +1,13 @@
 {
-  "originHash" : "e8aecf0333b3f38e21f49f8640855db5ea5a1d349814895713ad9647bd4b2608",
+  "originHash" : "19ec490d19557fb11260b379fc8fd828ac5e06471368546b08d61882bcbb1263",
   "pins" : [
     {
       "identity" : "obdiqiossdk",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/CarDr-com/OBDIQIosSdk",
+      "location" : "https://github.com/CarDr-com/OBDIQIosSdk.git",
       "state" : {
-        "revision" : "f1d14513861f1bbda15f6bd9475f4c9e00008cdb",
-        "version" : "2.0.3"
+        "revision" : "2d144e368ec6efac0c51b601e5da612020c70585",
+        "version" : "2.0.5"
       }
     },
     {
@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/repairclub/repairclub-ios-sdk.git",
       "state" : {
-        "revision" : "a70d7ee3b14f2da6f409a091b51b12972aea5199",
-        "version" : "1.5.6"
+        "revision" : "a5dea8a632cd5b9b74904cb0c5f90a254c9870fd",
+        "version" : "1.6.0"
       }
     },
     {

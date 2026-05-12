@@ -11,6 +11,9 @@
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		761780ED2CA45674006654EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
+		A4BFB84A2FB2464E00D770ED /* OBDIQIosSdk in Frameworks */ = {isa = PBXBuildFile; productRef = A4BFB8492FB2464E00D770ED /* OBDIQIosSdk */; };
+		A4F601012FB35A3900D26C84 /* OBDIQIosSdk in Frameworks */ = {isa = PBXBuildFile; productRef = A4F601002FB35A3900D26C84 /* OBDIQIosSdk */; };
+		A4F601042FB372BC00D26C84 /* OBDIQIosSdk in Frameworks */ = {isa = PBXBuildFile; productRef = A4F601032FB372BC00D26C84 /* OBDIQIosSdk */; };
 		DC6C847CC62D5506E6683DEA /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
 		E2E3BBB12F5711B80070D7E1 /* OBDIQIosSdk in Frameworks */ = {isa = PBXBuildFile; productRef = E2E3BBB02F5711B80070D7E1 /* OBDIQIosSdk */; };
 		E2E3BBB32F5711DB0070D7E1 /* Dummy.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2E3BBB22F5711D90070D7E1 /* Dummy.swift */; };
@@ -45,7 +48,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				0C80B921A6F3F58F76C31292 /* libPods-CarDrApp.a in Frameworks */,
+				A4F601012FB35A3900D26C84 /* OBDIQIosSdk in Frameworks */,
 				E2E3BBD12F5B2E6D0070D7E1 /* OBDIQIosSdk in Frameworks */,
+				A4BFB84A2FB2464E00D770ED /* OBDIQIosSdk in Frameworks */,
+				A4F601042FB372BC00D26C84 /* OBDIQIosSdk in Frameworks */,
 				E2E3BBB12F5711B80070D7E1 /* OBDIQIosSdk in Frameworks */,
 				E2E3BBD62F5B3A780070D7E1 /* OBDIQIosSdk in Frameworks */,
 			);
@@ -165,7 +171,7 @@
 			);
 			mainGroup = 83CBB9F61A601CBA00E9B192;
 			packageReferences = (
-				E2E3BBD42F5B3A770070D7E1 /* XCRemoteSwiftPackageReference "OBDIQIosSdk" */,
+				A4F601022FB372BC00D26C84 /* XCRemoteSwiftPackageReference "OBDIQIosSdk" */,
 			);
 			productRefGroup = 83CBBA001A601CBA00E9B192 /* Products */;
 			projectDirPath = "";
@@ -516,6 +522,22 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		A4BFB8482FB2464E00D770ED /* XCRemoteSwiftPackageReference "OBDIQIosSdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/CarDr-com/OBDIQIosSdk.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.4;
+			};
+		};
+		A4F601022FB372BC00D26C84 /* XCRemoteSwiftPackageReference "OBDIQIosSdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/CarDr-com/OBDIQIosSdk.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.5;
+			};
+		};
 		E2E3BBAF2F5711B80070D7E1 /* XCRemoteSwiftPackageReference "OBDIQIosSdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/CarDr-com/OBDIQIosSdk";
@@ -535,6 +557,20 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		A4BFB8492FB2464E00D770ED /* OBDIQIosSdk */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A4BFB8482FB2464E00D770ED /* XCRemoteSwiftPackageReference "OBDIQIosSdk" */;
+			productName = OBDIQIosSdk;
+		};
+		A4F601002FB35A3900D26C84 /* OBDIQIosSdk */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = OBDIQIosSdk;
+		};
+		A4F601032FB372BC00D26C84 /* OBDIQIosSdk */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A4F601022FB372BC00D26C84 /* XCRemoteSwiftPackageReference "OBDIQIosSdk" */;
+			productName = OBDIQIosSdk;
+		};
 		E2E3BBB02F5711B80070D7E1 /* OBDIQIosSdk */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = E2E3BBAF2F5711B80070D7E1 /* XCRemoteSwiftPackageReference "OBDIQIosSdk" */;
