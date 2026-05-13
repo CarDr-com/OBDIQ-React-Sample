@@ -1,5 +1,7 @@
 package com.cardrapp
 
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import com.facebook.react.bridge.*
 import com.facebook.react.modules.core.DeviceEventManagerModule
@@ -12,6 +14,8 @@ class CarDrModule(private val reactContext: ReactApplicationContext) :
 
     private var connectionManager: ConnectionManager? = null
     private var vin: String = ""
+    private val mainHandler = Handler(Looper.getMainLooper())
+    private var readyForScanRunnable: Runnable? = null
 
     override fun getName(): String {
         return "CarDrModule"
@@ -97,10 +101,7 @@ class CarDrModule(private val reactContext: ReactApplicationContext) :
 
         vin = vehicleEntry.VIN ?: ""
 
-        val map = Arguments.createMap()
-        map.putString("vin", vin)
 
-        sendEvent("onVINReceived", map)
     }
 
     override fun didFetchMil(mil: Boolean) {
@@ -108,7 +109,16 @@ class CarDrModule(private val reactContext: ReactApplicationContext) :
     }
 
     override fun isReadyForScan(status: Boolean, isGenric: Boolean) {
-        // optional
+       if(!isGenric){
+           sendVinReceived()
+       }
+    }
+
+    private fun sendVinReceived() {
+        val map = Arguments.createMap()
+        map.putString("vin", vin)
+
+        sendEvent("onVINReceived", map)
     }
 
     override fun didUpdateProgress(progressStatus: String, percent: String) {

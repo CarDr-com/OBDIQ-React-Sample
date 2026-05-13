@@ -10,14 +10,59 @@ import {
   NativeEventEmitter,
   Alert,
   FlatList,
+  PermissionsAndroid,
+  Platform,
 } from 'react-native';
 
 const {CarDrModule} = NativeModules;
 
+type DtcCode = {
+  moduleName: string;
+  code: string;
+};
+
 function App(): React.JSX.Element {
 
-  const [dtcCodes, setDtcCodes] = useState([]);
+  const [dtcCodes, setDtcCodes] = useState<DtcCode[]>([]);
   const [progress, setProgress] = useState("0");
+
+  const requestBluetoothPermissions = async () => {
+    if (Platform.OS !== 'android') {
+      return true;
+    }
+
+    try {
+      const permissions =
+        Platform.Version >= 31
+          ? [
+              PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
+              PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
+            ]
+          : [PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION];
+
+      const result = await PermissionsAndroid.requestMultiple(permissions);
+
+      const granted = permissions.every(
+        permission => result[permission] === PermissionsAndroid.RESULTS.GRANTED,
+      );
+
+      if (!granted) {
+        Alert.alert(
+          'Bluetooth Permission Required',
+          'Please allow Bluetooth permissions to scan and connect to your OBD device.',
+        );
+      }
+
+      return granted;
+    } catch (error) {
+      console.error('Bluetooth permission request failed:', error);
+      Alert.alert(
+        'Permission Error',
+        'Unable to request Bluetooth permissions. Please enable them in Settings.',
+      );
+      return false;
+    }
+  };
 
   useEffect(() => {
 
@@ -71,21 +116,36 @@ function App(): React.JSX.Element {
 
   }, []);
 
-  const initializeSDK = () => {
+  const initializeSDK = async () => {
+    const hasPermission = await requestBluetoothPermissions();
+    if (!hasPermission) {
+      return;
+    }
+
     CarDrModule?.initializeSDK("CARDR-58748");
   };
 
-  const scanDevice = () => {
+  const scanDevice = async () => {
+    const hasPermission = await requestBluetoothPermissions();
+    if (!hasPermission) {
+      return;
+    }
+
     CarDrModule?.scanForDevice();
   };
 
-  const startScan = () => {
+  const startScan = async () => {
+    const hasPermission = await requestBluetoothPermissions();
+    if (!hasPermission) {
+      return;
+    }
+
     setDtcCodes([]);
     setProgress("0");
     CarDrModule?.startScan();
   };
 
-  const renderItem = ({item}) => (
+  const renderItem = ({item}: {item: DtcCode}) => (
     <View style={styles.codeItem}>
       <Text style={styles.codeText}>
         {item.moduleName} - {item.code}
