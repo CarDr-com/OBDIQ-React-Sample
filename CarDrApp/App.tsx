@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
   SafeAreaView,
   StatusBar,
@@ -15,16 +15,52 @@ import {
 } from 'react-native';
 
 const {CarDrModule} = NativeModules;
+const GENERIC_SCAN_DELAY_MS = 5000;
 
 type DtcCode = {
   moduleName: string;
   code: string;
 };
 
+type ReadyForScanEvent = {
+  status: boolean;
+  isGeneric: boolean;
+};
+
+type ReadyForRepairInfoEvent = {
+  isReady: boolean;
+};
+
 function App(): React.JSX.Element {
 
   const [dtcCodes, setDtcCodes] = useState<DtcCode[]>([]);
-  const [progress, setProgress] = useState("0");
+  const [progress, setProgress] = useState('0');
+  const readyForScanTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hasStartedReadyScanRef = useRef(false);
+
+  const clearReadyForScanDelay = useCallback(() => {
+    if (readyForScanTimeoutRef.current) {
+      clearTimeout(readyForScanTimeoutRef.current);
+      readyForScanTimeoutRef.current = null;
+    }
+  }, []);
+
+  const resetReadyForScanState = useCallback(() => {
+    clearReadyForScanDelay();
+    hasStartedReadyScanRef.current = false;
+  }, [clearReadyForScanDelay]);
+
+  const startScanFromReadyCallback = useCallback(() => {
+    if (hasStartedReadyScanRef.current) {
+      return;
+    }
+
+    clearReadyForScanDelay();
+    hasStartedReadyScanRef.current = true;
+    setDtcCodes([]);
+    setProgress('0');
+    CarDrModule?.startScan();
+  }, [clearReadyForScanDelay]);
 
   const requestBluetoothPermissions = async () => {
     if (Platform.OS !== 'android') {
@@ -67,54 +103,87 @@ function App(): React.JSX.Element {
   useEffect(() => {
 
     if (!CarDrModule) {
-      console.error("❌ CarDrModule not found in NativeModules");
-      console.log("NativeModules:", NativeModules);
+      console.error('❌ CarDrModule not found in NativeModules');
+      console.log('NativeModules:', NativeModules);
       return;
     }
 
-    console.log("✅ CarDrModule loaded:", CarDrModule);
+    console.log('✅ CarDrModule loaded:', CarDrModule);
 
     const emitter = new NativeEventEmitter(CarDrModule);
 
     const vinListener = emitter.addListener(
-      "onVINReceived",
+      'onVINReceived',
       data => {
-        console.log("VIN:", data.vin);
-        Alert.alert("VIN Received", data.vin);
+        console.log('VIN:', data.vin);
+        Alert.alert('VIN Received', data.vin);
       }
     );
 
     const progressListener = emitter.addListener(
-      "onScanProgress",
+      'onScanProgress',
       data => {
-        console.log("Progress:", data.percent);
+        console.log('Progress:', data.percent);
         setProgress(data.percent);
       }
     );
 
+    const readyForScanListener = emitter.addListener(
+      'onReadyForScan',
+      (data: ReadyForScanEvent) => {
+        console.log('Ready for scan:', data);
+
+        if (!data.status) {
+          return;
+        }
+
+        if (data.isGeneric) {
+          if (!hasStartedReadyScanRef.current && !readyForScanTimeoutRef.current) {
+            readyForScanTimeoutRef.current = setTimeout(
+              startScanFromReadyCallback,
+              GENERIC_SCAN_DELAY_MS,
+            );
+          }
+          return;
+        }
+
+        startScanFromReadyCallback();
+      }
+    );
+
     const dtcListener = emitter.addListener(
-      "onDTCReceived",
+      'onDTCReceived',
       data => {
-        console.log("DTC Codes:", data.codes);
+        console.log('DTC Codes:', data.codes);
         setDtcCodes(data.codes || []);
       }
     );
 
     const repairListener = emitter.addListener(
-      "onRepairCostReceived",
+      'onRepairCostReceived',
       data => {
-        console.log("Repair Cost:", data.result);
+        console.log('Repair Cost:', data.result);
+      }
+    );
+
+    const readyForRepairInfoListener = emitter.addListener(
+      'onReadyForRepairInfo',
+      (data: ReadyForRepairInfoEvent) => {
+        console.log('Ready for repair info:', data.isReady);
       }
     );
 
     return () => {
       vinListener.remove();
       progressListener.remove();
+      readyForScanListener.remove();
       dtcListener.remove();
       repairListener.remove();
+      readyForRepairInfoListener.remove();
+      clearReadyForScanDelay();
     };
 
-  }, []);
+  }, [clearReadyForScanDelay, startScanFromReadyCallback]);
 
   const initializeSDK = async () => {
     const hasPermission = await requestBluetoothPermissions();
@@ -122,7 +191,8 @@ function App(): React.JSX.Element {
       return;
     }
 
-    CarDrModule?.initializeSDK("CARDR-58748");
+    resetReadyForScanState();
+    CarDrModule?.initializeSDK('CARDR-58748');
   };
 
   const scanDevice = async () => {
@@ -131,18 +201,8 @@ function App(): React.JSX.Element {
       return;
     }
 
+    resetReadyForScanState();
     CarDrModule?.scanForDevice();
-  };
-
-  const startScan = async () => {
-    const hasPermission = await requestBluetoothPermissions();
-    if (!hasPermission) {
-      return;
-    }
-
-    setDtcCodes([]);
-    setProgress("0");
-    CarDrModule?.startScan();
   };
 
   const renderItem = ({item}: {item: DtcCode}) => (
@@ -175,12 +235,6 @@ function App(): React.JSX.Element {
 
         <View style={{height: 20}} />
 
-        <Button
-          title="Start Scan"
-          onPress={startScan}
-        />
-
-        {/* Scan Progress */}
         <Text style={styles.progressText}>
           Scan Progress: {progress}%
         </Text>

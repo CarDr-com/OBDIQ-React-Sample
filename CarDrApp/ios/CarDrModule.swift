@@ -25,8 +25,10 @@ class CarDrModule: RCTEventEmitter {
             "onBluetoothState",
             "onDevicesFound",
             "onScanProgress",
+            "onReadyForScan",
             "onVINReceived",
             "onDTCReceived",
+            "onReadyForRepairInfo",
             "onRepairCostReceived"
         ]
     }
@@ -159,11 +161,20 @@ extension CarDrModule: ConnectionListener {
 
     func didFetchMil(mil: Bool) {}
 
-    func isReadyForScan(status: Bool, isGeneric: Bool) {}
+    func isReadyForScan(status: Bool, isGeneric: Bool) {
+        emit("onReadyForScan", [
+            "status": status,
+            "isGeneric": isGeneric
+        ])
+    }
 
     func didScanForDevice(startScan: Bool) {}
 
-    func didReadyForRepairInfo(isReady: Bool) {}
+    func didReadyForRepairInfo(isReady: Bool) {
+        emit("onReadyForRepairInfo", [
+            "isReady": isReady
+        ])
+    }
 
     func didReceiveRepairCost(result: [String : Any]?) {}
 }

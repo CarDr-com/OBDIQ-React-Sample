@@ -1,8 +1,5 @@
 package com.cardrapp
 
-import android.os.Handler
-import android.os.Looper
-import android.util.Log
 import com.facebook.react.bridge.*
 import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.cardr.cardrandroidsdk.*
@@ -14,8 +11,6 @@ class CarDrModule(private val reactContext: ReactApplicationContext) :
 
     private var connectionManager: ConnectionManager? = null
     private var vin: String = ""
-    private val mainHandler = Handler(Looper.getMainLooper())
-    private var readyForScanRunnable: Runnable? = null
 
     override fun getName(): String {
         return "CarDrModule"
@@ -109,9 +104,11 @@ class CarDrModule(private val reactContext: ReactApplicationContext) :
     }
 
     override fun isReadyForScan(status: Boolean, isGenric: Boolean) {
-       if(!isGenric){
-           sendVinReceived()
-       }
+        val map = Arguments.createMap()
+        map.putBoolean("status", status)
+        map.putBoolean("isGeneric", isGenric)
+
+        sendEvent("onReadyForScan", map)
     }
 
     private fun sendVinReceived() {
@@ -177,7 +174,10 @@ class CarDrModule(private val reactContext: ReactApplicationContext) :
     }
 
     override fun didReadyForRepairInfo(isReady: Boolean) {
-        // optional
+        val map = Arguments.createMap()
+        map.putBoolean("isReady", isReady)
+
+        sendEvent("onReadyForRepairInfo", map)
     }
 
     override fun didReceiveRepairCost(result: Map<String, Any>?) {
