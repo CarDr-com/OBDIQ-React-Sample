@@ -185,7 +185,7 @@ function App(): React.JSX.Element {
 
   }, [clearReadyForScanDelay, startScanFromReadyCallback]);
 
-  const initializeSDK = async () => {
+  const connect = async () => {
     const hasPermission = await requestBluetoothPermissions();
     if (!hasPermission) {
       return;
@@ -193,15 +193,6 @@ function App(): React.JSX.Element {
 
     resetReadyForScanState();
     CarDrModule?.initializeSDK('CARDR-58748');
-  };
-
-  const scanDevice = async () => {
-    const hasPermission = await requestBluetoothPermissions();
-    if (!hasPermission) {
-      return;
-    }
-
-    resetReadyForScanState();
     CarDrModule?.scanForDevice();
   };
 
@@ -222,15 +213,8 @@ function App(): React.JSX.Element {
         <Text style={styles.title}>CarDr OBD SDK Demo</Text>
 
         <Button
-          title="Initialize SDK"
-          onPress={initializeSDK}
-        />
-
-        <View style={{height: 20}} />
-
-        <Button
-          title="Scan Device"
-          onPress={scanDevice}
+          title="Connect"
+          onPress={connect}
         />
 
         <View style={{height: 20}} />
