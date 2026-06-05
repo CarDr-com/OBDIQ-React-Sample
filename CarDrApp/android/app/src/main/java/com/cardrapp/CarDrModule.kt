@@ -1,5 +1,6 @@
 package com.cardrapp
 
+import android.util.Log
 import com.facebook.react.bridge.*
 import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.cardr.cardrandroidsdk.*
@@ -11,15 +12,29 @@ class CarDrModule(private val reactContext: ReactApplicationContext) :
 
     private var connectionManager: ConnectionManager? = null
     private var vin: String = ""
+    private var isSDKInitialized = false
+    private var pendingDeviceScan = false
 
     override fun getName(): String {
         return "CarDrModule"
     }
 
+    @ReactMethod
+    fun addListener(eventName: String) {
+        // Required by NativeEventEmitter.
+    }
+
+    @ReactMethod
+    fun removeListeners(count: Int) {
+        // Required by NativeEventEmitter.
+    }
+
     private fun sendEvent(event: String, params: WritableMap?) {
-        reactContext
-            .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-            .emit(event, params)
+        reactContext.runOnUiQueueThread {
+            reactContext
+                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+                .emit(event, params)
+        }
     }
 
     // MARK: Initialize SDK
@@ -27,6 +42,8 @@ class CarDrModule(private val reactContext: ReactApplicationContext) :
     @ReactMethod
     fun initializeSDK(partnerID: String) {
 
+        isSDKInitialized = false
+        pendingDeviceScan = false
         connectionManager = ConnectionManager(reactContext)
 
         connectionManager?.initialize(
@@ -41,6 +58,12 @@ class CarDrModule(private val reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun scanForDevice() {
+        if (!isSDKInitialized) {
+            pendingDeviceScan = true
+            return
+        }
+
+        pendingDeviceScan = false
         connectionManager?.scanForDevice()
     }
 
@@ -48,7 +71,20 @@ class CarDrModule(private val reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun startScan() {
+        Log.d("CarDrModule", "Starting scan using SDK auto mode")
         connectionManager?.startScan()
+    }
+
+    @ReactMethod
+    fun startAdvancedScan() {
+        Log.d("CarDrModule", "Starting advanced scan")
+        connectionManager?.startAdvancedScan()
+    }
+
+    @ReactMethod
+    fun startGenericScan() {
+        Log.d("CarDrModule", "Starting generic scan")
+        connectionManager?.startGenericScan()
     }
 
     // MARK: Stop scan
@@ -64,10 +100,17 @@ class CarDrModule(private val reactContext: ReactApplicationContext) :
 
     override fun didScanForDevice(startScan: Boolean) {
 
+        isSDKInitialized = startScan
+
         val map = Arguments.createMap()
         map.putBoolean("status", startScan)
 
         sendEvent("onBluetoothState", map)
+
+        if (startScan && pendingDeviceScan) {
+            pendingDeviceScan = false
+            connectionManager?.scanForDevice()
+        }
     }
 
     override fun didDevicesFetch(foundedDevices: List<DeviceItem>?) {
@@ -96,7 +139,7 @@ class CarDrModule(private val reactContext: ReactApplicationContext) :
 
         vin = vehicleEntry.VIN ?: ""
 
-
+        sendVinReceived()
     }
 
     override fun didFetchMil(mil: Boolean) {
@@ -104,6 +147,8 @@ class CarDrModule(private val reactContext: ReactApplicationContext) :
     }
 
     override fun isReadyForScan(status: Boolean, isGenric: Boolean) {
+        Log.d("CarDrModule", "Ready for scan: status=$status isGeneric=$isGenric")
+
         val map = Arguments.createMap()
         map.putBoolean("status", status)
         map.putBoolean("isGeneric", isGenric)
@@ -129,15 +174,28 @@ class CarDrModule(private val reactContext: ReactApplicationContext) :
 
     override fun didReceivedCode(model: List<DTCResponseModel>?) {
 
-        if (model == null) return
+        if (model == null) {
+            Log.d("CarDrModule", "DTC response model is null")
+            return
+        }
+
+        Log.d("CarDrModule", "DTC response modules=${model.size}")
 
         val codesArray = Arguments.createArray()
 
         for (module in model) {
 
             module.removeDuplicateDTCResponses()
+            Log.d(
+                "CarDrModule",
+                "DTC module=${module.moduleName} responseStatus=${module.responseStatus} codes=${module.dtcCodeArray.size}"
+            )
 
             for (item in module.dtcCodeArray) {
+                Log.d(
+                    "CarDrModule",
+                    "DTC code module=${module.moduleName} code=${item.dtcErrorCode} status=${item.status}"
+                )
 
                 val codeMap = Arguments.createMap()
 

@@ -31,12 +31,19 @@ type ReadyForRepairInfoEvent = {
   isReady: boolean;
 };
 
+type BluetoothStateEvent = {
+  status: boolean;
+};
+
 function App(): React.JSX.Element {
 
   const [dtcCodes, setDtcCodes] = useState<DtcCode[]>([]);
   const [progress, setProgress] = useState('0');
+  const [scanCompleted, setScanCompleted] = useState(false);
+  const [vin, setVin] = useState('');
   const readyForScanTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasStartedReadyScanRef = useRef(false);
+  const hasStartedDeviceScanRef = useRef(false);
 
   const clearReadyForScanDelay = useCallback(() => {
     if (readyForScanTimeoutRef.current) {
@@ -48,9 +55,19 @@ function App(): React.JSX.Element {
   const resetReadyForScanState = useCallback(() => {
     clearReadyForScanDelay();
     hasStartedReadyScanRef.current = false;
+    hasStartedDeviceScanRef.current = false;
   }, [clearReadyForScanDelay]);
 
-  const startScanFromReadyCallback = useCallback(() => {
+  const scanForDeviceWhenReady = useCallback(() => {
+    if (hasStartedDeviceScanRef.current) {
+      return;
+    }
+
+    hasStartedDeviceScanRef.current = true;
+    CarDrModule?.scanForDevice();
+  }, []);
+
+  const startScanFromReadyCallback = useCallback((isGeneric = false) => {
     if (hasStartedReadyScanRef.current) {
       return;
     }
@@ -58,7 +75,21 @@ function App(): React.JSX.Element {
     clearReadyForScanDelay();
     hasStartedReadyScanRef.current = true;
     setDtcCodes([]);
+    setScanCompleted(false);
     setProgress('0');
+
+    if (Platform.OS === 'android') {
+      if (isGeneric) {
+        console.log('Starting Android generic scan');
+        CarDrModule?.startGenericScan?.();
+        return;
+      }
+
+      console.log('Starting Android advanced scan');
+      CarDrModule?.startAdvancedScan?.();
+      return;
+    }
+
     CarDrModule?.startScan();
   }, [clearReadyForScanDelay]);
 
@@ -116,7 +147,7 @@ function App(): React.JSX.Element {
       'onVINReceived',
       data => {
         console.log('VIN:', data.vin);
-        Alert.alert('VIN Received', data.vin);
+        setVin(data.vin || '');
       }
     );
 
@@ -124,7 +155,25 @@ function App(): React.JSX.Element {
       'onScanProgress',
       data => {
         console.log('Progress:', data.percent);
-        setProgress(data.percent);
+        if (data.percent !== undefined && data.percent !== '') {
+          setProgress(data.percent);
+        }
+
+        if (data.status === 'ScanSucceeded') {
+          setProgress('100');
+          setScanCompleted(true);
+        }
+      }
+    );
+
+    const bluetoothStateListener = emitter.addListener(
+      'onBluetoothState',
+      (data: BluetoothStateEvent) => {
+        console.log('Bluetooth state:', data);
+
+        if (Platform.OS === 'android' && data.status) {
+          scanForDeviceWhenReady();
+        }
       }
     );
 
@@ -137,17 +186,17 @@ function App(): React.JSX.Element {
           return;
         }
 
-        if (data.isGeneric) {
+        if (data.isGeneric === true) {
           if (!hasStartedReadyScanRef.current && !readyForScanTimeoutRef.current) {
             readyForScanTimeoutRef.current = setTimeout(
-              startScanFromReadyCallback,
+              () => startScanFromReadyCallback(true),
               GENERIC_SCAN_DELAY_MS,
             );
           }
           return;
         }
 
-        startScanFromReadyCallback();
+        startScanFromReadyCallback(false);
       }
     );
 
@@ -156,6 +205,7 @@ function App(): React.JSX.Element {
       data => {
         console.log('DTC Codes:', data.codes);
         setDtcCodes(data.codes || []);
+        setScanCompleted(true);
       }
     );
 
@@ -176,6 +226,7 @@ function App(): React.JSX.Element {
     return () => {
       vinListener.remove();
       progressListener.remove();
+      bluetoothStateListener.remove();
       readyForScanListener.remove();
       dtcListener.remove();
       repairListener.remove();
@@ -183,7 +234,7 @@ function App(): React.JSX.Element {
       clearReadyForScanDelay();
     };
 
-  }, [clearReadyForScanDelay, startScanFromReadyCallback]);
+  }, [clearReadyForScanDelay, scanForDeviceWhenReady, startScanFromReadyCallback]);
 
   const connect = async () => {
     const hasPermission = await requestBluetoothPermissions();
@@ -192,8 +243,12 @@ function App(): React.JSX.Element {
     }
 
     resetReadyForScanState();
+    setVin('');
     CarDrModule?.initializeSDK('CARDR-58748');
-    CarDrModule?.scanForDevice();
+
+    if (Platform.OS !== 'android') {
+      scanForDeviceWhenReady();
+    }
   };
 
   const renderItem = ({item}: {item: DtcCode}) => (
@@ -217,23 +272,33 @@ function App(): React.JSX.Element {
           onPress={connect}
         />
 
-        <View style={{height: 20}} />
+        <View style={styles.sectionGap} />
 
         <Text style={styles.progressText}>
           Scan Progress: {progress}%
         </Text>
 
+        <Text style={styles.vinText}>
+          VIN: {vin || 'Not received yet'}
+        </Text>
+
         {/* DTC Codes */}
-        <View style={{marginTop: 30}}>
+        <View style={styles.listSection}>
           <Text style={styles.listTitle}>Detected Error Codes</Text>
 
           <FlatList
             data={dtcCodes}
             keyExtractor={(item, index) => index.toString()}
             renderItem={renderItem}
+            style={styles.codesList}
+            contentContainerStyle={[
+              styles.codesListContent,
+              dtcCodes.length === 0 && styles.emptyCodesListContent,
+            ]}
+            showsVerticalScrollIndicator={true}
             ListEmptyComponent={
-              <Text style={{textAlign: 'center', marginTop: 10}}>
-                No codes yet
+              <Text style={styles.emptyText}>
+                {scanCompleted ? 'No error codes found' : 'No codes yet'}
               </Text>
             }
           />
@@ -248,12 +313,14 @@ const styles = StyleSheet.create({
 
   container: {
     flex: 1,
-    justifyContent: 'center',
     backgroundColor: '#f2f2f2',
   },
 
   content: {
+    flex: 1,
     paddingHorizontal: 24,
+    paddingTop: 48,
+    paddingBottom: 24,
   },
 
   title: {
@@ -263,9 +330,20 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
+  sectionGap: {
+    height: 20,
+  },
+
   progressText: {
     marginTop: 20,
     fontSize: 16,
+    textAlign: 'center',
+    fontWeight: '500',
+  },
+
+  vinText: {
+    marginTop: 10,
+    fontSize: 14,
     textAlign: 'center',
     fontWeight: '500',
   },
@@ -274,6 +352,24 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     marginBottom: 10,
+  },
+
+  listSection: {
+    flex: 1,
+    marginTop: 30,
+    minHeight: 180,
+  },
+
+  codesList: {
+    flex: 1,
+  },
+
+  codesListContent: {
+    paddingBottom: 24,
+  },
+
+  emptyCodesListContent: {
+    flexGrow: 1,
   },
 
   codeItem: {
@@ -286,6 +382,11 @@ const styles = StyleSheet.create({
 
   codeText: {
     fontSize: 16,
+  },
+
+  emptyText: {
+    marginTop: 10,
+    textAlign: 'center',
   },
 });
 
