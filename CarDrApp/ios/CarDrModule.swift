@@ -9,6 +9,7 @@ class CarDrModule: RCTEventEmitter {
 
     private var connectionManager: CarDrConnectionApi?
     private var vin: String = ""
+    private var dtcErrorArray: [DTCResponseModel] = []
     private var hasListeners = false
 
     override init() {
@@ -89,6 +90,38 @@ class CarDrModule: RCTEventEmitter {
     func stopScan() {
         connectionManager?.stopAdvanceScan()
     }
+
+    @objc
+    func getRepairCost(_ vin: String, dtcCodes: NSArray) {
+        let dtcModels = matchingDtcResponseModels(for: dtcCodes)
+        print("getRepairCost called vin=\(vin) dtcCount=\(dtcModels.count)")
+        connectionManager?.getRepairCostSummary(vinNumber: vin, dtcErrorCodeArray: dtcModels)
+    }
+
+    private func matchingDtcResponseModels(for dtcCodes: NSArray) -> [DTCResponseModel] {
+        var requestedKeys = Set<String>()
+
+        for item in dtcCodes {
+            guard
+                let codeMap = item as? [String: Any],
+                let code = codeMap["code"] as? String,
+                !code.isEmpty
+            else {
+                continue
+            }
+
+            let moduleName = codeMap["moduleName"] as? String ?? ""
+            requestedKeys.insert("\(moduleName)|\(code)")
+        }
+
+        guard !requestedKeys.isEmpty else { return [] }
+
+        return dtcErrorArray.filter { model in
+            model.dtcCodeArray.contains { item in
+                requestedKeys.contains("\(model.moduleName)|\(item.dtcErrorCode)")
+            }
+        }
+    }
 }
 
 // MARK: SDK Listener
@@ -125,6 +158,8 @@ extension CarDrModule: ConnectionListener {
 
         guard let model = model else { return }
 
+        dtcErrorArray = model
+
         var codes: [[String: Any]] = []
 
         for module in model {
@@ -141,14 +176,11 @@ extension CarDrModule: ConnectionListener {
         emit("onDTCReceived", [
             "codes": codes
         ])
-
-        connectionManager?.getRepairCostSummary(
-            vinNumber: vin,
-            dtcErrorCodeArray: model
-        )
     }
 
     func didReceivedRepairCost(jsonString: String) {
+
+        print("didReceivedRepairCost jsonString: \(jsonString)")
 
         emit("onRepairCostReceived", [
             "result": jsonString
@@ -176,5 +208,11 @@ extension CarDrModule: ConnectionListener {
         ])
     }
 
-    func didReceiveRepairCost(result: [String : Any]?) {}
+    func didReceiveRepairCost(result: [String : Any]?) {
+        print("didReceiveRepairCost result: \(String(describing: result))")
+
+        emit("onRepairCostReceived", [
+            "result": result ?? [:]
+        ])
+    }
 }

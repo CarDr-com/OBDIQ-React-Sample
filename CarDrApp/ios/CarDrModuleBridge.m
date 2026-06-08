@@ -7,5 +7,6 @@ RCT_EXTERN_METHOD(initializeSDK:(NSString *)partnerID)
 RCT_EXTERN_METHOD(scanForDevice)
 RCT_EXTERN_METHOD(startScan)
 RCT_EXTERN_METHOD(stopScan)
+RCT_EXTERN_METHOD(getRepairCost:(NSString *)vin dtcCodes:(NSArray *)dtcCodes)
 
 @end

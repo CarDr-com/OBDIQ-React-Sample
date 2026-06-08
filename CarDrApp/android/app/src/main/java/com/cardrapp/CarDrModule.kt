@@ -12,6 +12,7 @@ class CarDrModule(private val reactContext: ReactApplicationContext) :
 
     private var connectionManager: ConnectionManager? = null
     private var vin: String = ""
+    private var dtcErrorArray: List<DTCResponseModel> = emptyList()
     private var isSDKInitialized = false
     private var pendingDeviceScan = false
 
@@ -92,6 +93,49 @@ class CarDrModule(private val reactContext: ReactApplicationContext) :
     @ReactMethod
     fun stopScan() {
         connectionManager?.disconnectOBD()
+    }
+
+    @ReactMethod
+    fun getRepairCost(vin: String, dtcCodes: ReadableArray) {
+        val dtcModels = matchingDtcResponseModels(dtcCodes)
+
+        Log.d("CarDrModule", "getRepairCost called vin=$vin dtcCount=${dtcModels.size}")
+        connectionManager?.getRepairCostSummary(vin, dtcModels) { success, json ->
+            Log.d("CarDrModule", "getRepairCost result success=$success json=$json")
+
+            if (success && json != null) {
+                val repairMap = Arguments.createMap()
+                repairMap.putString("result", json.toString())
+
+                sendEvent("onRepairCostReceived", repairMap)
+            }
+        }
+    }
+
+    private fun matchingDtcResponseModels(dtcCodes: ReadableArray): List<DTCResponseModel> {
+        val requestedKeys = mutableSetOf<String>()
+
+        for (index in 0 until dtcCodes.size()) {
+            val codeMap = dtcCodes.getMap(index) ?: continue
+            val code = codeMap.getString("code") ?: continue
+
+            if (code.isEmpty()) {
+                continue
+            }
+
+            val moduleName = codeMap.getString("moduleName") ?: ""
+            requestedKeys.add("$moduleName|$code")
+        }
+
+        if (requestedKeys.isEmpty()) {
+            return emptyList()
+        }
+
+        return dtcErrorArray.filter { module ->
+            module.dtcCodeArray.any { item ->
+                requestedKeys.contains("${module.moduleName}|${item.dtcErrorCode}")
+            }
+        }
     }
 
     // ============================================================
@@ -180,6 +224,7 @@ class CarDrModule(private val reactContext: ReactApplicationContext) :
         }
 
         Log.d("CarDrModule", "DTC response modules=${model.size}")
+        dtcErrorArray = model
 
         val codesArray = Arguments.createArray()
 
@@ -210,17 +255,6 @@ class CarDrModule(private val reactContext: ReactApplicationContext) :
         result.putArray("codes", codesArray)
 
         sendEvent("onDTCReceived", result)
-
-        connectionManager?.getRepairCostSummary(vin, model) { success, json ->
-
-            if (success && json != null) {
-
-                val repairMap = Arguments.createMap()
-                repairMap.putString("result", json.toString())
-
-                sendEvent("onRepairCostReceived", repairMap)
-            }
-        }
     }
 
     override fun didReceivedRepairCost(jsonString: String) {
@@ -239,8 +273,10 @@ class CarDrModule(private val reactContext: ReactApplicationContext) :
     }
 
     override fun didReceiveRepairCost(result: Map<String, Any>?) {
+        Log.d("CarDrModule", "didReceiveRepairCost result=$result")
 
         val map = Arguments.createMap()
+        map.putString("result", result?.toString() ?: "")
 
         sendEvent("onRepairCostReceived", map)
     }

@@ -41,6 +41,8 @@ function App(): React.JSX.Element {
   const [progress, setProgress] = useState('0');
   const [scanCompleted, setScanCompleted] = useState(false);
   const [vin, setVin] = useState('');
+  const [isRepairInfoReady, setIsRepairInfoReady] = useState(false);
+  const [isRepairCostLoading, setIsRepairCostLoading] = useState(false);
   const readyForScanTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasStartedReadyScanRef = useRef(false);
   const hasStartedDeviceScanRef = useRef(false);
@@ -77,6 +79,8 @@ function App(): React.JSX.Element {
     setDtcCodes([]);
     setScanCompleted(false);
     setProgress('0');
+    setIsRepairInfoReady(false);
+    setIsRepairCostLoading(false);
 
     if (Platform.OS === 'android') {
       if (isGeneric) {
@@ -213,6 +217,7 @@ function App(): React.JSX.Element {
       'onRepairCostReceived',
       data => {
         console.log('Repair Cost:', data.result);
+        setIsRepairCostLoading(false);
       }
     );
 
@@ -220,6 +225,7 @@ function App(): React.JSX.Element {
       'onReadyForRepairInfo',
       (data: ReadyForRepairInfoEvent) => {
         console.log('Ready for repair info:', data.isReady);
+        setIsRepairInfoReady(data.isReady === true);
       }
     );
 
@@ -244,11 +250,25 @@ function App(): React.JSX.Element {
 
     resetReadyForScanState();
     setVin('');
+    setDtcCodes([]);
+    setScanCompleted(false);
+    setProgress('0');
+    setIsRepairInfoReady(false);
+    setIsRepairCostLoading(false);
     CarDrModule?.initializeSDK('CARDR-58748');
 
     if (Platform.OS !== 'android') {
       scanForDeviceWhenReady();
     }
+  };
+
+  const getRepairCost = () => {
+    if (!isRepairInfoReady || isRepairCostLoading) {
+      return;
+    }
+
+    setIsRepairCostLoading(true);
+    CarDrModule?.getRepairCost?.(vin, dtcCodes);
   };
 
   const renderItem = ({item}: {item: DtcCode}) => (
@@ -281,6 +301,14 @@ function App(): React.JSX.Element {
         <Text style={styles.vinText}>
           VIN: {vin || 'Not received yet'}
         </Text>
+
+        <View style={styles.repairButton}>
+          <Button
+            title={isRepairCostLoading ? 'Getting Repair Cost...' : 'Get Repair Cost'}
+            onPress={getRepairCost}
+            disabled={!isRepairInfoReady || isRepairCostLoading}
+          />
+        </View>
 
         {/* DTC Codes */}
         <View style={styles.listSection}>
@@ -346,6 +374,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
     fontWeight: '500',
+  },
+
+  repairButton: {
+    marginTop: 16,
   },
 
   listTitle: {
